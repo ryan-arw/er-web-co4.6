@@ -1,0 +1,348 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────
+   EzyRelife Brand Design System
+   Bio-Rhythmic Aesthetics | The Rhythm of Senses
+   ───────────────────────────────────────────────── */
+
+@theme {
+  /* ── Brand Primary Colors ── */
+  --color-warm-orange: #f3723e;
+  --color-warm-orange-light: #f8a07a;
+  --color-warm-orange-dark: #d85a2b;
+
+  --color-morning-green: #b7da80;
+  --color-morning-green-light: #d4eeb0;
+  --color-morning-green-dark: #8fc44e;
+
+  --color-herbal-green: #044b33;
+  --color-herbal-green-light: #066d4b;
+  --color-herbal-green-dark: #033824;
+
+  --color-ivory: #F9FCEB;
+  --color-ivory-warm: #faf8f0;
+
+  --color-flow-yellow: #F6E8B1;
+  --color-flow-yellow-light: #faf3d4;
+
+  /* ── Neutral Palette ── */
+  --color-text-main: #1a2e1a;
+  --color-text-sub: #5a6e5a;
+  --color-text-muted: #8a9a8a;
+  --color-border-soft: #e8efe0;
+
+  /* ── Font ── */
+  --font-sans: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
+/* ── Fonts loaded via @import at top of file ── */
+
+/* ── Base Styles ── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-ivory);
+  color: var(--color-text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Selection Color ── */
+::selection {
+  background-color: var(--color-morning-green);
+  color: var(--color-herbal-green);
+}
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-morning-green);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-warm-orange);
+}
+
+/* ── Bio-Rhythmic Animations ── */
+@keyframes pulse-gentle {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes flow-line {
+  0% {
+    stroke-dashoffset: 1000;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s ease-out forwards;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* ── Glassmorphism Utility ── */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-warm {
+  background: rgba(249, 252, 235, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(183, 218, 128, 0.2);
+}
+
+/* ── Section Spacing (Breathing Space 40%+ whitespace) ── */
+.section-gap {
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+}
+
+@media (min-width: 768px) {
+  .section-gap {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+}
+
+/* ── Gradient Utility ── */
+.gradient-brand {
+  background: linear-gradient(135deg, var(--color-ivory) 0%, var(--color-morning-green-light) 50%, var(--color-flow-yellow-light) 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(180deg, var(--color-ivory) 0%, rgba(183, 218, 128, 0.15) 50%, var(--color-ivory) 100%);
+}
+
+.gradient-text-brand {
+  background: linear-gradient(135deg, var(--color-herbal-green) 0%, var(--color-warm-orange) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── CTA Button Base ── */
+.btn-primary {
+  background: var(--color-warm-orange);
+  color: white;
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(243, 114, 62, 0.3);
+}
+
+.btn-primary:hover {
+  background: var(--color-warm-orange-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(243, 114, 62, 0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-herbal-green);
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 9999px;
+  border: 2px solid var(--color-herbal-green);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary:hover {
+  background: var(--color-herbal-green);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* ── Enhanced Animations ── */
+
+/* Smooth link underline animation */
+.link-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-warm-orange);
+  border-radius: 9999px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(4, 75, 51, 0.08);
+}
+
+/* Animated gradient text */
+.gradient-text-animated {
+  background: linear-gradient(135deg,
+      var(--color-warm-orange),
+      var(--color-herbal-green),
+      var(--color-morning-green-dark),
+      var(--color-warm-orange));
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 6s ease infinite;
+}
+
+@keyframes gradientShift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Focus ring for accessibility */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-warm-orange), 0 0 0 5px rgba(243, 114, 62, 0.2);
+  border-radius: 8px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-ivory);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-soft);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-morning-green);
+}
+
+/* Responsive text utilities */
+@media (max-width: 640px) {
+  .section-gap {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+}
