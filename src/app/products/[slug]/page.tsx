@@ -32,25 +32,19 @@ function Section({ children, className = '', id = '' }: { children: React.ReactN
 
 const productData: Record<string, {
     name: string; subtitle: string; image: string; badge: string; badgeColor: string;
-    flavor: string; description: string;
+    description: string; flavors: { name: string; image: string; color: string }[];
 }> = {
-    original: {
-        name: 'Vitalic D · Original',
-        subtitle: '3 天生物节律重整系统 · 原味',
+    'vitalic-d': {
+        name: 'Vitalic D · 生物质子重整系统',
+        subtitle: '3 天生物节律重整系统 · 唤醒代谢潜能',
         image: '/photo/01 vitalic-d-main.jpg',
-        badge: '热销',
-        badgeColor: 'bg-warm-orange',
-        flavor: '原味',
-        description: '经典配方，温和顺口。适合所有体质的入门与进阶选择。搭载完整的 ReLife 代谢方程式，为您的身体执行精密的四步运算。',
-    },
-    apple: {
-        name: 'Vitalic D · Apple',
-        subtitle: '3 天生物节律重整系统 · 苹果味',
-        image: '/photo/1 main.jpg',
-        badge: '新口味',
-        badgeColor: 'bg-morning-green',
-        flavor: '苹果味',
-        description: '清新苹果风味，更顺口的重启体验。特别适合首次尝试的用户。同样搭载完整 ReLife 代谢方程式，口感升级，配方不减。',
+        badge: '系统套装',
+        badgeColor: 'bg-herbal-green',
+        description: '搭载完整的 ReLife 代谢方程式，为您的身体执行精密的“净彻、滋养、修护、焕采”四步运算。一套方案，三天重启。',
+        flavors: [
+            { name: 'Original', image: '/photo/01 vitalic-d-main.jpg', color: 'bg-warm-orange' },
+            { name: 'Apple', image: '/photo/1 main.jpg', color: 'bg-morning-green' },
+        ],
     },
 };
 
@@ -66,22 +60,22 @@ export default function ProductDetailPage() {
     const slug = params.slug as string;
     const { addItem, setIsOpen } = useCart();
 
-    const product = productData[slug] || productData['original'];
+    const baseProduct = productData['vitalic-d'];
     const [selectedTier, setSelectedTier] = useState(2); // default 3-box
+    const [selectedFlavor, setSelectedFlavor] = useState(0); // default Original
     const [quantity, setQuantity] = useState(1);
     const [showToast, setShowToast] = useState(false);
 
     const currentPricing = pricing[selectedTier];
+    const currentFlavor = baseProduct.flavors[selectedFlavor];
 
     const handleAddToCart = () => {
         addItem({
-            slug: slug,
-            name: product.name,
-            image: product.image,
-            tier: indexToTier(selectedTier),
-            tierLabel: currentPricing.label,
-            pricePerBox: currentPricing.perBox,
-            boxCount: currentPricing.qty,
+            slug: 'vitalic-d',
+            name: baseProduct.name,
+            image: currentFlavor.image,
+            flavor: currentFlavor.name,
+            boxCount: currentPricing.qty * quantity,
         });
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
@@ -89,13 +83,11 @@ export default function ProductDetailPage() {
 
     const handleBuyNow = () => {
         addItem({
-            slug: slug,
-            name: product.name,
-            image: product.image,
-            tier: indexToTier(selectedTier),
-            tierLabel: currentPricing.label,
-            pricePerBox: currentPricing.perBox,
-            boxCount: currentPricing.qty,
+            slug: 'vitalic-d',
+            name: baseProduct.name,
+            image: currentFlavor.image,
+            flavor: currentFlavor.name,
+            boxCount: currentPricing.qty * quantity,
         });
         router.push('/checkout');
     };
@@ -119,7 +111,7 @@ export default function ProductDetailPage() {
                             <span>/</span>
                             <Link href="/products" className="hover:text-herbal-green transition-colors">产品</Link>
                             <span>/</span>
-                            <span className="text-herbal-green font-medium">{product.name}</span>
+                            <span className="text-herbal-green font-medium">{baseProduct.name}</span>
                         </nav>
 
                         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
@@ -132,14 +124,14 @@ export default function ProductDetailPage() {
                             >
                                 <div className="relative aspect-square rounded-3xl bg-gradient-to-b from-ivory to-morning-green/5 border border-border-soft overflow-hidden">
                                     <Image
-                                        src={product.image}
-                                        alt={product.name}
+                                        src={currentFlavor.image}
+                                        alt={baseProduct.name}
                                         fill
                                         className="object-contain p-10"
                                         priority
                                     />
-                                    <div className={`absolute top-4 left-4 px-3 py-1 rounded-full ${product.badgeColor} text-white text-xs font-bold`}>
-                                        {product.badge}
+                                    <div className={`absolute top-4 left-4 px-3 py-1 rounded-full ${baseProduct.badgeColor} text-white text-xs font-bold`}>
+                                        {baseProduct.badge}
                                     </div>
                                 </div>
                             </motion.div>
@@ -151,9 +143,9 @@ export default function ProductDetailPage() {
                                 transition={{ duration: 0.6, delay: 0.1 }}
                             >
                                 <h1 className="text-3xl md:text-4xl font-extrabold text-herbal-green mb-2 font-[family-name:var(--font-display)]">
-                                    {product.name}
+                                    {baseProduct.name}
                                 </h1>
-                                <p className="text-text-muted mb-4">{product.subtitle}</p>
+                                <p className="text-text-muted mb-4">{baseProduct.subtitle}</p>
 
                                 {/* Stars */}
                                 <div className="flex items-center gap-2 mb-6">
@@ -165,7 +157,34 @@ export default function ProductDetailPage() {
                                     <span className="text-sm text-text-muted">4.9 (128 条评价)</span>
                                 </div>
 
-                                <p className="text-text-sub leading-relaxed mb-8">{product.description}</p>
+                                <p className="text-text-sub leading-relaxed mb-8">{baseProduct.description}</p>
+
+                                {/* Flavor Selection */}
+                                <div className="space-y-3 mb-8">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm font-semibold text-herbal-green">选择口味：</p>
+                                        <span className="text-xs font-bold text-warm-orange uppercase tracking-widest">{currentFlavor.name}</span>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        {baseProduct.flavors.map((f, i) => (
+                                            <button
+                                                key={f.name}
+                                                onClick={() => setSelectedFlavor(i)}
+                                                className={`group relative flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${selectedFlavor === i
+                                                    ? 'border-herbal-green bg-morning-green/5'
+                                                    : 'border-border-soft hover:border-morning-green/30'
+                                                    }`}
+                                            >
+                                                <div className={`w-10 h-10 rounded-full ${f.color} shadow-inner flex items-center justify-center`}>
+                                                    {selectedFlavor === i && <Check size={20} className="text-white" />}
+                                                </div>
+                                                <span className={`text-[10px] font-bold uppercase tracking-tighter ${selectedFlavor === i ? 'text-herbal-green' : 'text-text-muted'}`}>
+                                                    {f.name}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
 
                                 {/* Tier Selection */}
                                 <div className="space-y-3 mb-8">

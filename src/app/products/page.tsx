@@ -109,9 +109,7 @@ function ProductCards() {
             slug: product.slug,
             name: product.name,
             image: product.image,
-            tier: 'triple', // Default to triple for quick add
-            tierLabel: '超值组合',
-            pricePerBox: 121,
+            flavor: 'Original',
             boxCount: 3,
         });
         setShowToast(true);
@@ -120,23 +118,15 @@ function ProductCards() {
 
     const products = [
         {
-            slug: 'original',
-            name: 'Vitalic D · Original',
-            subtitle: '3 天生物节律重整系统 · 原味',
+            slug: 'vitalic-d',
+            name: 'Vitalic D · 生物质子重整系统',
+            subtitle: '3 天生物节律重整系统 · 两种口味可选',
             image: '/photo/01 vitalic-d-main.jpg',
-            badge: '热销',
-            badgeColor: 'bg-warm-orange',
-            features: ['原始配方', '经典口感', '百搭适用'],
-        },
-        {
-            slug: 'apple',
-            name: 'Vitalic D · Apple',
-            subtitle: '3 天生物节律重整系统 · 苹果味',
-            image: '/photo/1 main.jpg',
-            badge: '新口味',
-            badgeColor: 'bg-morning-green',
-            features: ['清新苹果风味', '更顺口', '入门推荐'],
-        },
+            badge: '经典系统',
+            badgeColor: 'bg-herbal-green',
+            features: ['Cleanse 净彻', 'Nourish 滋养', 'Repair 修护', 'Glow 焕采'],
+            flavors: ['Original 原味', 'Apple 苹果味']
+        }
     ];
 
     const pricing = [
@@ -151,55 +141,63 @@ function ProductCards() {
                 <motion.div variants={fadeUp} className="text-center mb-16">
                     <span className="text-sm font-semibold text-warm-orange tracking-widest uppercase mb-3 block">立即选购</span>
                     <h2 className="text-3xl md:text-4xl font-bold text-herbal-green font-[family-name:var(--font-display)]">
-                        两种口味，同一套方程式
+                        一套方程式，多重感官体验
                     </h2>
                 </motion.div>
 
                 {/* Product Grid */}
-                <div className="grid md:grid-cols-2 gap-8 mb-16">
+                <div className="max-w-4xl mx-auto mb-16">
                     {products.map((product) => (
                         <motion.div
                             key={product.slug}
                             variants={fadeUp}
-                            className="group rounded-3xl bg-white border border-border-soft overflow-hidden hover:shadow-xl hover:shadow-morning-green/10 transition-all duration-500"
+                            className="group rounded-[3rem] bg-white border border-border-soft overflow-hidden hover:shadow-2xl hover:shadow-morning-green/10 transition-all duration-500 flex flex-col md:flex-row items-center"
                         >
-                            <div className="relative aspect-[4/3] bg-gradient-to-b from-ivory to-morning-green/5">
+                            <div className="relative w-full md:w-1/2 aspect-square bg-gradient-to-br from-ivory to-morning-green/5">
                                 <Image
                                     src={product.image}
                                     alt={product.name}
                                     fill
-                                    className="object-contain p-8 group-hover:scale-105 transition-transform duration-700"
+                                    className="object-contain p-12 group-hover:scale-105 transition-transform duration-700"
                                 />
-                                <div className={`absolute top-4 left-4 px-3 py-1 rounded-full ${product.badgeColor} text-white text-xs font-bold`}>
+                                <div className={`absolute top-6 left-6 px-4 py-1.5 rounded-full ${product.badgeColor} text-white text-[10px] font-black uppercase tracking-widest`}>
                                     {product.badge}
                                 </div>
                             </div>
-                            <div className="p-8">
-                                <h3 className="text-2xl font-bold text-herbal-green mb-1">{product.name}</h3>
-                                <p className="text-sm text-text-muted mb-4">{product.subtitle}</p>
+                            <div className="p-10 md:p-12 w-full md:w-1/2">
+                                <h3 className="text-3xl font-black text-herbal-green mb-2">{product.name}</h3>
+                                <p className="text-base text-text-muted mb-6">{product.subtitle}</p>
 
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    {product.features.map((f) => (
-                                        <span key={f} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ivory text-xs font-medium text-herbal-green border border-border-soft">
-                                            <Check size={12} /> {f}
-                                        </span>
-                                    ))}
+                                <div className="space-y-4 mb-8">
+                                    <div className="flex flex-wrap gap-2">
+                                        {product.features.map((f) => (
+                                            <span key={f} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-morning-green/10 text-[10px] font-bold text-herbal-green border border-morning-green/20">
+                                                <Check size={10} /> {f}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs font-bold text-text-sub uppercase tracking-widest">提供口味:</span>
+                                        <div className="flex gap-2">
+                                            <span className="w-3 h-3 rounded-full bg-warm-orange" title="Original" />
+                                            <span className="w-3 h-3 rounded-full bg-morning-green" title="Apple" />
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-4">
                                     <Link
                                         href={`/products/${product.slug}`}
-                                        className="btn-secondary text-xs py-2.5 flex items-center justify-center gap-2"
+                                        className="btn-primary py-4 flex items-center justify-center gap-2 group/btn"
                                     >
-                                        详情
+                                        立即配置 <ArrowRight size={18} className="transition-transform group-hover/btn:translate-x-1" />
                                     </Link>
-                                    <button
-                                        onClick={() => handleQuickAdd(product)}
-                                        className="btn-primary text-xs py-2.5 flex items-center justify-center gap-2"
+                                    <Link
+                                        href="#pricing"
+                                        className="btn-secondary py-4 flex items-center justify-center gap-2"
                                     >
-                                        <ShoppingCart size={14} />
-                                        加入
-                                    </button>
+                                        价格详情
+                                    </Link>
                                 </div>
                             </div>
                         </motion.div>

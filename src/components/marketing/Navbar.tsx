@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShoppingBag } from 'lucide-react';
+import { Menu, X, ShoppingBag, User, LayoutDashboard, LogOut } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import MiniCart from '@/components/shared/MiniCart';
 import AnimatedLogo from '@/components/shared/AnimatedLogo';
+import { createClient } from '@/lib/supabase/client';
 
 const navLinks = [
     { href: '/how-it-works', label: '如何运作' },
@@ -17,13 +18,36 @@ const navLinks = [
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { totalItems, setIsOpen } = useCart();
+    const [user, setUser] = useState<any>(null);
+    const { totalBoxes, setIsOpen } = useCart();
+    const supabase = createClient();
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+
+        // Check auth status
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        checkUser();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            subscription.unsubscribe();
+        };
     }, []);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        window.location.reload();
+    };
 
     return (
         <>
@@ -67,18 +91,38 @@ export default function Navbar() {
                                 className="relative p-2 text-herbal-green hover:text-warm-orange transition-colors"
                             >
                                 <ShoppingBag size={20} />
-                                {totalItems > 0 && (
+                                {totalBoxes > 0 && (
                                     <span className="absolute -top-0.5 -right-0.5 rounded-full bg-warm-orange text-white text-[10px] font-bold flex items-center justify-center min-w-[18px] h-[18px]">
-                                        {totalItems}
+                                        {totalBoxes}
                                     </span>
                                 )}
                             </button>
-                            <Link
-                                href="/login"
-                                className="text-sm font-medium text-herbal-green hover:text-warm-orange transition-colors"
-                            >
-                                登入
-                            </Link>
+
+                            {user ? (
+                                <div className="flex items-center gap-4">
+                                    <Link
+                                        href="/dashboard"
+                                        className="text-sm font-bold text-herbal-green hover:text-warm-orange transition-colors flex items-center gap-2"
+                                    >
+                                        <LayoutDashboard size={18} /> 控制面板
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="text-text-muted hover:text-red-500 transition-colors"
+                                        title="退出登录"
+                                    >
+                                        <LogOut size={18} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    className="text-sm font-bold text-herbal-green hover:text-warm-orange transition-colors"
+                                >
+                                    登入
+                                </Link>
+                            )}
+
                             <Link
                                 href="/products"
                                 className="btn-primary text-sm px-6 py-2.5"
@@ -94,9 +138,9 @@ export default function Navbar() {
                                 className="relative p-2 text-herbal-green"
                             >
                                 <ShoppingBag size={20} />
-                                {totalItems > 0 && (
+                                {totalBoxes > 0 && (
                                     <span className="absolute -top-0.5 -right-0.5 rounded-full bg-warm-orange text-white text-[10px] font-bold flex items-center justify-center min-w-[18px] h-[18px]">
-                                        {totalItems}
+                                        {totalBoxes}
                                     </span>
                                 )}
                             </button>
@@ -131,14 +175,34 @@ export default function Navbar() {
                                     </Link>
                                 ))}
                                 <div className="pt-4 border-t border-morning-green/20 space-y-3">
-                                    <Link
-                                        href="/login"
-                                        className="block text-center text-sm font-medium text-herbal-green"
-                                    >
-                                        登入
-                                    </Link>
+                                    {user ? (
+                                        <>
+                                            <Link
+                                                href="/dashboard"
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                className="block text-center text-sm font-bold text-herbal-green"
+                                            >
+                                                控制面板
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full text-center text-sm font-medium text-text-muted"
+                                            >
+                                                退出登录
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <Link
+                                            href="/login"
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                            className="block text-center text-sm font-bold text-herbal-green"
+                                        >
+                                            登入
+                                        </Link>
+                                    )}
                                     <Link
                                         href="/products"
+                                        onClick={() => setIsMobileMenuOpen(false)}
                                         className="block text-center btn-primary text-sm"
                                     >
                                         开始我的重启

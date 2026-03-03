@@ -7,7 +7,7 @@ import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 
 export default function MiniCart() {
-    const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalItems, totalPrice } = useCart();
+    const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalBoxes, totalPrice, pricePerBox } = useCart();
 
     return (
         <AnimatePresence>
@@ -35,9 +35,9 @@ export default function MiniCart() {
                             <div className="flex items-center gap-2">
                                 <ShoppingBag size={20} className="text-herbal-green" />
                                 <h2 className="text-base font-bold text-herbal-green">购物车</h2>
-                                {totalItems > 0 && (
+                                {totalBoxes > 0 && (
                                     <span className="px-2 py-0.5 rounded-full bg-warm-orange text-white text-xs font-bold">
-                                        {totalItems}
+                                        {totalBoxes}
                                     </span>
                                 )}
                             </div>
@@ -62,38 +62,46 @@ export default function MiniCart() {
                             ) : (
                                 <div className="space-y-4">
                                     {items.map((item) => (
-                                        <div key={`${item.slug}-${item.tier}`} className="flex gap-4 py-3 border-b border-border-soft last:border-0">
+                                        <div key={`${item.slug}-${item.flavor}`} className="flex gap-4 py-3 border-b border-border-soft last:border-0">
                                             <div className="relative w-16 h-16 rounded-xl bg-ivory overflow-hidden flex-shrink-0">
                                                 <Image src={item.image} alt={item.name} fill className="object-contain p-1" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="text-sm font-semibold text-herbal-green truncate">{item.name}</h3>
-                                                <p className="text-xs text-text-muted">{item.tierLabel} · {item.boxCount} 盒</p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className="text-[10px] text-warm-orange font-bold uppercase tracking-wider">{item.flavor}</span>
+                                                    <span className="text-[10px] text-text-muted">· 共 {item.boxCount} 盒</span>
+                                                </div>
                                                 <div className="flex items-center justify-between mt-2">
                                                     <div className="flex items-center border border-border-soft rounded-lg overflow-hidden">
                                                         <button
-                                                            onClick={() => updateQuantity(item.slug, item.tier, item.quantity - 1)}
+                                                            onClick={() => updateQuantity(item.slug, item.flavor, item.boxCount - 1)}
                                                             className="px-2 py-1 hover:bg-ivory transition-colors"
                                                         >
                                                             <Minus size={12} />
                                                         </button>
                                                         <span className="px-3 py-1 text-xs font-bold text-herbal-green border-x border-border-soft tabular-nums">
-                                                            {item.quantity}
+                                                            {item.boxCount}
                                                         </span>
                                                         <button
-                                                            onClick={() => updateQuantity(item.slug, item.tier, item.quantity + 1)}
+                                                            onClick={() => updateQuantity(item.slug, item.flavor, item.boxCount + 1)}
                                                             className="px-2 py-1 hover:bg-ivory transition-colors"
                                                         >
                                                             <Plus size={12} />
                                                         </button>
                                                     </div>
-                                                    <span className="text-sm font-bold text-herbal-green">
-                                                        ${(item.pricePerBox * item.boxCount * item.quantity).toFixed(2)}
-                                                    </span>
+                                                    <div className="text-right">
+                                                        <p className="text-sm font-bold text-herbal-green">
+                                                            ${(pricePerBox * item.boxCount).toFixed(2)}
+                                                        </p>
+                                                        <p className="text-[10px] text-text-muted line-through">
+                                                            ${(145 * item.boxCount).toFixed(2)}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => removeItem(item.slug, item.tier)}
+                                                onClick={() => removeItem(item.slug, item.flavor)}
                                                 className="self-start p-1 text-text-muted hover:text-red-500 transition-colors"
                                             >
                                                 <Trash2 size={14} />
@@ -108,7 +116,10 @@ export default function MiniCart() {
                         {items.length > 0 && (
                             <div className="border-t border-border-soft px-6 py-4 space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm text-text-muted">小计</span>
+                                    <div>
+                                        <span className="text-sm text-text-muted">小计 ({totalBoxes} 盒)</span>
+                                        <p className="text-[10px] text-warm-orange font-bold">已享优惠价格: ${pricePerBox.toFixed(2)}/盒</p>
+                                    </div>
                                     <span className="text-xl font-extrabold text-herbal-green">${totalPrice.toFixed(2)}</span>
                                 </div>
                                 <Link

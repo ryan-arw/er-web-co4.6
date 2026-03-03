@@ -1,21 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     ShoppingBag, Package, Eye, ChevronDown, ChevronUp,
     Truck, CheckCircle2, Clock, XCircle, Search, Filter,
-    ArrowRight, ExternalLink
+    ArrowRight, ExternalLink, Info, Zap
 } from 'lucide-react';
 
 import { createClient } from '@/lib/supabase/client';
-import { useEffect } from 'react';
 
 type OrderStatus = 'all' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-    pending: { label: '待确认', color: 'text-amber-600', bg: 'bg-amber-50', icon: <Clock size={14} /> },
+    pending: { label: '待付款', color: 'text-amber-600', bg: 'bg-amber-50', icon: <Clock size={14} /> },
     processing: { label: '处理中', color: 'text-blue-600', bg: 'bg-blue-50', icon: <Package size={14} /> },
     shipped: { label: '已发货', color: 'text-purple-600', bg: 'bg-purple-50', icon: <Truck size={14} /> },
     delivered: { label: '已送达', color: 'text-green-600', bg: 'bg-green-50', icon: <CheckCircle2 size={14} /> },
@@ -25,6 +25,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
 export default function OrdersPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [retryingOrderId, setRetryingOrderId] = useState<string | null>(null);
     const [filter, setFilter] = useState<OrderStatus>('all');
     const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -39,7 +40,7 @@ export default function OrdersPage() {
                     *,
                     order_items (
                         *,
-                        products (*)
+                        products (name, image_url)
                     )
                 `)
                 .eq('user_id', user.id)
@@ -51,10 +52,14 @@ export default function OrdersPage() {
                     realId: o.id,
                     date: new Date(o.created_at).toLocaleDateString(),
                     status: o.status,
+                    paymentProvider: o.payment_provider,
+                    shippingAddress: o.shipping_address,
                     items: o.order_items.map((oi: any) => ({
-                        name: oi.products?.name || '未知产品',
+                        name: oi.products?.name || 'Vitalic D',
+                        flavor: oi.flavor || 'Original',
                         qty: oi.quantity,
-                        price: oi.unit_price_cents / 100
+                        price: oi.unit_price_cents / 100,
+                        image: oi.products?.image_url || null
                     })),
                     total: o.total_cents / 100,
                     tracking: o.tracking_number
@@ -64,13 +69,37 @@ export default function OrdersPage() {
         setLoading(false);
     };
 
+    const handleRetryPayment = async (order: any) => {
+        try {
+            setRetryingOrderId(order.realId);
+            const response = await fetch(`/api/orders/${order.realId}/pay`, {
+                method: 'POST',
+            });
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else if (data.provider === 'paypal') {
+                // For PayPal, we could redirect to a checkout page that auto-loads the order
+                alert('PayPal 支付重试功能正在完善中，请联系客服。');
+            } else {
+                alert(data.error || '无法重新发起支付，请重试或联系客服。');
+            }
+        } catch (err) {
+            console.error('Retry error:', err);
+            alert('支付重试失败，请稍后。');
+        } finally {
+            setRetryingOrderId(null);
+        }
+    };
+
     useEffect(() => {
         fetchOrders();
     }, []);
 
     const filters: { key: OrderStatus; label: string }[] = [
         { key: 'all', label: '全部' },
-        { key: 'pending', label: '待确认' },
+        { key: 'pending', label: '待付款' },
         { key: 'processing', label: '处理中' },
         { key: 'shipped', label: '已发货' },
         { key: 'delivered', label: '已送达' },
@@ -148,7 +177,12 @@ export default function OrdersPage() {
             ) : (
                 <div className="space-y-4">
                     {filteredOrders.map((order: any) => {
-                        const status = statusConfig[order.status];
+                        const status = statusConfig[order.status] || {
+                            label: order.status || '处理中',
+                            color: 'text-gray-600',
+                            bg: 'bg-gray-100',
+                            icon: <Package size={14} />
+                        };
                         const isExpanded = expandedOrder === order.id;
 
                         return (
@@ -188,32 +222,97 @@ export default function OrdersPage() {
                                         animate={{ opacity: 1, height: 'auto' }}
                                         className="border-t border-border-soft px-5 py-4"
                                     >
-                                        <div className="space-y-3">
-                                            {order.items.map((item: any, i: number) => (
-                                                <div key={i} className="flex items-center justify-between text-sm">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-ivory flex items-center justify-center text-warm-orange">
-                                                            <Package size={14} />
+                                        <div className="space-y-4">
+                                            <div className="space-y-3">
+                                                {order.items.map((item: any, i: number) => (
+                                                    <div key={i} className="flex items-center justify-between text-sm group/item">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="relative w-12 h-12 rounded-xl bg-ivory border border-border-soft overflow-hidden flex-shrink-0 p-1">
+                                                                <Image
+                                                                    src={item.image || '/photo/01 vitalic-d-main.jpg'}
+                                                                    alt={item.name}
+                                                                    fill
+                                                                    className="object-contain"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-herbal-green">
+                                                                    {item.name}
+                                                                </p>
+                                                                <div className="flex items-center gap-2 mt-0.5">
+                                                                    <span className="text-[10px] font-bold text-warm-orange uppercase tracking-wider bg-warm-orange/10 px-1.5 py-0.5 rounded">
+                                                                        {item.flavor}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-text-muted">× {item.qty} 盒</span>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <span className="text-text-main">{item.name}</span>
-                                                        <span className="text-text-muted">× {item.qty}</span>
+                                                        <span className="font-black text-herbal-green">${(item.price * item.qty).toFixed(2)}</span>
                                                     </div>
-                                                    <span className="font-semibold text-herbal-green">${(item.price * item.qty).toFixed(2)}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {order.tracking && (
-                                            <div className="mt-4 pt-4 border-t border-border-soft flex items-center justify-between">
-                                                <div className="flex items-center gap-2 text-sm text-text-sub">
-                                                    <Truck size={16} className="text-warm-orange" />
-                                                    物流单号：<span className="font-mono text-herbal-green">{order.tracking}</span>
-                                                </div>
-                                                <button className="text-xs text-warm-orange hover:text-warm-orange-dark flex items-center gap-1 transition-colors">
-                                                    追踪包裹 <ExternalLink size={12} />
-                                                </button>
+                                                ))}
                                             </div>
-                                        )}
+
+                                            {/* Order Metadata Grid */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border-soft">
+                                                {/* Shipping Info */}
+                                                <div>
+                                                    <h4 className="text-[10px] uppercase font-black text-herbal-green/40 tracking-widest mb-3">寄送详情</h4>
+                                                    <div className="p-4 rounded-2xl bg-ivory/30 space-y-1.5 border border-border-soft">
+                                                        <p className="text-sm font-bold text-herbal-green">{order.shippingAddress?.name}</p>
+                                                        <p className="text-xs text-text-muted leading-relaxed">
+                                                            {order.shippingAddress?.line1} {order.shippingAddress?.line2}<br />
+                                                            {order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.zip}<br />
+                                                            {order.shippingAddress?.country}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Summary & Payment */}
+                                                <div>
+                                                    <h4 className="text-[10px] uppercase font-black text-herbal-green/40 tracking-widest mb-3">支付摘要</h4>
+                                                    <div className="p-4 rounded-2xl bg-ivory/30 space-y-2 border border-border-soft">
+                                                        <div className="flex justify-between text-xs">
+                                                            <span className="text-text-muted italic">支付方式</span>
+                                                            <span className="font-bold text-herbal-green uppercase">{order.paymentProvider || 'Stripe'}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-xs">
+                                                            <span className="text-text-muted">订单总计</span>
+                                                            <span className="font-black text-herbal-green">${order.total.toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                    {order.status === 'pending' ? (
+                                                        <button
+                                                            onClick={() => handleRetryPayment(order)}
+                                                            disabled={retryingOrderId === order.realId}
+                                                            className="mt-3 w-full py-2.5 px-4 rounded-xl bg-warm-orange text-white text-xs font-bold hover:bg-warm-orange-dark shadow-sm shadow-warm-orange/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            {retryingOrderId === order.realId ? (
+                                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                            ) : (
+                                                                <Zap size={14} />
+                                                            )}
+                                                            立即支付
+                                                        </button>
+                                                    ) : (
+                                                        <button className="mt-3 w-full py-2.5 px-4 rounded-xl border border-border-soft text-xs font-bold text-herbal-green hover:bg-white hover:shadow-sm transition-all flex items-center justify-center gap-2">
+                                                            <Info size={14} /> 联系客服/查询进度
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {order.tracking && (
+                                                <div className="mt-4 pt-4 border-t border-border-soft flex items-center justify-between">
+                                                    <div className="flex items-center gap-2 text-sm text-text-sub">
+                                                        <Truck size={16} className="text-warm-orange" />
+                                                        物流单号：<span className="font-mono text-herbal-green">{order.tracking}</span>
+                                                    </div>
+                                                    <button className="text-xs text-warm-orange hover:text-warm-orange-dark flex items-center gap-1 transition-colors">
+                                                        追踪包裹 <ExternalLink size={12} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </motion.div>
                                 )}
                             </motion.div>

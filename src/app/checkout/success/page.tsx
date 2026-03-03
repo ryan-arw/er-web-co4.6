@@ -1,97 +1,97 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ArrowRight, Package, Truck, Smartphone } from 'lucide-react';
+import { CheckCircle2, Package, ArrowRight, Home, ShoppingBag, Loader2 } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
 import Navbar from '@/components/marketing/Navbar';
-import Footer from '@/components/marketing/Footer';
 
-export default function CheckoutSuccessPage() {
-    const orderId = `ER-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
+export default function SuccessPage() {
+    const searchParams = useSearchParams();
+    const sessionId = searchParams.get('session_id');
+    const paypalOrderId = searchParams.get('paypal_order_id');
+    const { clearCart } = useCart();
+    const router = useRouter();
+    const [verifying, setVerifying] = useState(true);
+
+    useEffect(() => {
+        const verifyAndClear = async () => {
+            // Clear cart immediately
+            clearCart();
+
+            if (sessionId) {
+                try {
+                    // Force a server-side check for Stripe
+                    await fetch(`/api/stripe/verify-session?session_id=${sessionId}`);
+                    setVerifying(false);
+                } catch (err) {
+                    console.error('Verification failed', err);
+                    setVerifying(false);
+                }
+            } else if (paypalOrderId) {
+                // PayPal status is usually updated during capture-order
+                setTimeout(() => setVerifying(false), 1500);
+            } else {
+                setVerifying(false);
+            }
+        };
+
+        verifyAndClear();
+    }, [sessionId, paypalOrderId, clearCart]);
 
     return (
         <>
             <Navbar />
-            <main className="pt-28 pb-20 min-h-screen">
-                <div className="max-w-2xl mx-auto px-6 md:px-8">
+            <main className="pt-32 pb-20 min-h-screen bg-ivory/30 flex items-center justify-center">
+                <div className="max-w-md w-full px-6">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5 }}
-                        className="text-center"
+                        className="bg-white rounded-[2.5rem] p-10 text-center shadow-xl shadow-herbal-green/5 border border-border-soft"
                     >
-                        {/* Success Icon */}
-                        <div className="w-20 h-20 rounded-full bg-morning-green/15 flex items-center justify-center mx-auto mb-6">
-                            <CheckCircle2 size={40} className="text-morning-green-dark" />
-                        </div>
-
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-herbal-green mb-3 font-[family-name:var(--font-display)]">
-                            订单确认成功！ 🎉
-                        </h1>
-                        <p className="text-text-sub mb-2">
-                            感谢您的购买，您的 ReSet 旅程即将启航。
-                        </p>
-                        <p className="text-sm text-text-muted mb-8">
-                            订单号：<span className="font-mono font-bold text-herbal-green">{orderId}</span>
-                        </p>
-
-                        {/* Order Status Timeline */}
-                        <div className="p-6 rounded-2xl bg-white border border-border-soft mb-8 text-left">
-                            <h3 className="text-sm font-bold text-herbal-green mb-4">接下来会发生什么？</h3>
-                            <div className="space-y-5">
-                                {[
-                                    { icon: <Package size={18} />, title: '订单处理', desc: '我们会在 24 小时内确认并开始打包您的订单。', status: '进行中' },
-                                    { icon: <Truck size={18} />, title: '发货通知', desc: '包裹发出后，您将收到物流追踪邮件。', status: '等待中' },
-                                    { icon: <Smartphone size={18} />, title: '下载 ReLife Sync', desc: '在产品到达前下载 App，提前设置您的校准时间表。', status: '推荐' },
-                                ].map((step, index) => (
-                                    <div key={index} className="flex gap-4">
-                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${index === 0 ? 'bg-warm-orange/10 text-warm-orange' : 'bg-ivory text-text-muted'
-                                            }`}>
-                                            {step.icon}
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="text-sm font-semibold text-herbal-green">{step.title}</h4>
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${index === 0 ? 'bg-warm-orange/10 text-warm-orange' : 'bg-ivory text-text-muted'
-                                                    }`}>{step.status}</span>
-                                            </div>
-                                            <p className="text-xs text-text-muted mt-0.5">{step.desc}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                        {verifying ? (
+                            <div className="py-10">
+                                <Loader2 size={48} className="text-morning-green mx-auto animate-spin mb-4" />
+                                <h2 className="text-xl font-bold text-herbal-green">Verifying Payment...</h2>
+                                <p className="text-sm text-text-muted mt-2">Just a moment while we process your order.</p>
                             </div>
-                        </div>
-
-                        {/* Quick Links */}
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                            <Link href="/dashboard/orders" className="btn-primary text-sm px-8 py-3 flex items-center justify-center gap-2">
-                                查看订单 <ArrowRight size={16} />
-                            </Link>
-                            <Link href="/how-it-works" className="btn-secondary text-sm px-8 py-3">
-                                阅读 3R 指南
-                            </Link>
-                        </div>
-
-                        {/* Promo */}
-                        <div className="p-6 rounded-2xl bg-gradient-to-r from-herbal-green to-herbal-green-dark text-white text-left">
-                            <div className="flex items-start gap-4">
-                                <div className="relative w-12 h-12 flex-shrink-0">
-                                    <Image src="/photo/ezyrelife-logo-round.png" alt="EzyRelife" fill className="object-contain brightness-0 invert" />
+                        ) : (
+                            <>
+                                <div className="w-20 h-20 rounded-full bg-morning-green/10 flex items-center justify-center text-morning-green mx-auto mb-6">
+                                    <CheckCircle2 size={40} />
                                 </div>
-                                <div>
-                                    <h3 className="text-sm font-bold text-white mb-1">下一次 ReSet 省 10%</h3>
-                                    <p className="text-xs text-white/50 mb-3">订阅计划享受自动配送 + 折扣。保持节律，不错过任何校准窗口。</p>
-                                    <Link href="/dashboard/subscriptions" className="text-xs text-warm-orange font-semibold hover:underline">
-                                        了解订阅 →
+
+                                <h1 className="text-2xl font-black text-herbal-green mb-2">Order Confirmed!</h1>
+                                <p className="text-sm text-text-muted mb-8">
+                                    Thank you for your purchase. We've sent a confirmation email to your inbox.
+                                </p>
+
+                                <div className="bg-ivory/50 rounded-2xl p-4 mb-8 text-left border border-border-soft">
+                                    <div className="flex items-center gap-3 text-herbal-green mb-1">
+                                        <Package size={16} />
+                                        <span className="text-xs font-bold uppercase tracking-widest">Order Status</span>
+                                    </div>
+                                    <p className="text-sm font-semibold text-herbal-green">Processing & Packing</p>
+                                    <p className="text-[10px] text-text-muted mt-1">
+                                        Estimated delivery: 3-5 business days.
+                                    </p>
+                                </div>
+
+                                <div className="grid gap-3">
+                                    <Link href="/dashboard/orders" className="btn-primary text-sm py-3.5 flex items-center justify-center gap-2">
+                                        View Order History <ArrowRight size={16} />
+                                    </Link>
+                                    <Link href="/" className="text-sm font-bold text-text-muted hover:text-herbal-green flex items-center justify-center gap-2 py-2">
+                                        <Home size={16} /> Return Home
                                     </Link>
                                 </div>
-                            </div>
-                        </div>
+                            </>
+                        )}
                     </motion.div>
                 </div>
             </main>
-            <Footer />
         </>
     );
 }
