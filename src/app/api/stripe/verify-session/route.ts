@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     }
 
     try {
-        const supabase = await createClient();
+        const supabase = supabaseAdmin;
 
         // 1. Retrieve session from Stripe
         const session = await stripe.checkout.sessions.retrieve(sessionId);

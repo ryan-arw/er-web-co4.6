@@ -13,9 +13,11 @@ const navLinks = [
     { href: '/how-it-works', label: '如何运作' },
     { href: '/products', label: '产品' },
     { href: '/about', label: '关于我们' },
+    { href: '/contact', label: '联系我们' },
 ];
 
 export default function Navbar() {
+    const [mounted, setMounted] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [user, setUser] = useState<any>(null);
@@ -23,6 +25,7 @@ export default function Navbar() {
     const supabase = createClient();
 
     useEffect(() => {
+        setMounted(true);
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
 
@@ -48,6 +51,8 @@ export default function Navbar() {
         await supabase.auth.signOut();
         window.location.reload();
     };
+
+    if (!mounted) return null;
 
     return (
         <>

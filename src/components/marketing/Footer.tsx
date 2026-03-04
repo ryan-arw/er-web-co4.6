@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, Mail, Instagram, Facebook, Youtube, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const footerLinks = {
     产品: [
@@ -21,7 +21,7 @@ const footerLinks = {
     ],
     支持: [
         { label: '常见问题', href: '/#faq' },
-        { label: '联系我们', href: 'mailto:hello@ezyrelife.com' },
+        { label: '联系我们', href: '/contact' },
         { label: '配送政策', href: '/shipping' },
         { label: '退款政策', href: '/refund-policy' },
     ],
@@ -32,8 +32,13 @@ const footerLinks = {
 };
 
 export default function Footer() {
+    const [mounted, setMounted] = useState(false);
     const [email, setEmail] = useState('');
     const [isSubscribed, setIsSubscribed] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleSubscribe = (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,6 +47,8 @@ export default function Footer() {
         setEmail('');
         setTimeout(() => setIsSubscribed(false), 4000);
     };
+
+    if (!mounted) return null;
 
     return (
         <footer className="bg-herbal-green text-white/90">

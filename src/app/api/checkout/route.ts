@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 const getPricePerBox = (totalBoxes: number) => {
     if (totalBoxes >= 3) return 121.00;
@@ -55,9 +56,9 @@ export async function POST(req: Request) {
             };
         });
 
-        // 2. Create the parent Order record
+        // 2. Create the parent Order record - Use Admin to bypass RLS for guest/auth
         const orderNumber = generateOrderNumber();
-        const { data: order, error: orderError } = await supabase
+        const { data: order, error: orderError } = await supabaseAdmin
             .from('orders')
             .insert({
                 user_id: user?.id || null,
@@ -88,11 +89,11 @@ export async function POST(req: Request) {
             };
         });
 
-        const { error: itemsError } = await supabase
+        const { error: itemsError } = await supabaseAdmin
             .from('order_items')
             .insert(orderItemsToInsert);
 
-        if (itemsError) console.error('Error inserting order items:', itemsError);
+        if (itemsError) throw itemsError;
 
         // 4. Create Stripe Checkout Session
         const session = await stripe.checkout.sessions.create({
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
         });
 
         // Update with session ID
-        await supabase.from('orders').update({ stripe_session_id: session.id }).eq('id', order.id);
+        await supabaseAdmin.from('orders').update({ stripe_session_id: session.id }).eq('id', order.id);
 
         return NextResponse.json({ url: session.url });
     } catch (err: any) {
