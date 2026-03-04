@@ -1,7 +1,9 @@
 # CHANGELOG
-2026-03-04 13:16 till 13:20 (Gemini 3 Pro High)
+
 
 ## [V1.0.30] - HM
+2026-03-04 13:16 till 13:20 (Gemini 3 Flash)
+
 - **变更叙述**：修复了支付校验链路的 500 错误及数据库架构不匹配问题。
   - **后端权限升级**：引入了 `supabaseAdmin` 客户端，使用 Service Role 权限处理 Stripe 支付校验，确保游客（Guest）订单在支付后能被正确更新状态，绕过了 RLS 限制。
   - **数据库架构修复**：为 `order_items` 表补齐了缺失的 `flavor` (口味) 字段，解决了下单时无法保存商品详情的问题。
