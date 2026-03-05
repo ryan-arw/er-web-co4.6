@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/contexts/CartContext";
+import { HealthProvider } from "@/contexts/HealthContext";
+import { AppProvider } from "@/lib/vitalic/VitalicContext";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 
 export const metadata: Metadata = {
+  // ... existing metadata
   title: "EzyRelife — Reset from Within. ReLife for Real.",
   description: "生物节律重整系统。通过 Vitalic D 3 天校准方案，找回身体的掌控感。The Bio-Rhythmic Reset System that reboots your gut, energy, and clarity.",
   keywords: ["EzyRelife", "Vitalic D", "Reset", "Bio-Rhythmic", "Gut Health", "3-Day Reset", "节律校准"],
@@ -22,11 +25,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#2ea180" />
+      </head>
       <body className="antialiased">
-        <CartProvider>
-          {children}
-          <ScrollToTop />
-        </CartProvider>
+        <AppProvider>
+          <HealthProvider>
+            <CartProvider>
+              {children}
+              <ScrollToTop />
+            </CartProvider>
+          </HealthProvider>
+        </AppProvider>
       </body>
     </html>
   );

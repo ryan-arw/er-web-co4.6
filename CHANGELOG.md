@@ -1,4 +1,45 @@
-# CHANGELOG
+# Changelog
+
+## [V1.0.42] - OF
+[2026-03-05 19:15 till 19:50] (Gemini 3 Pro High)
+
+- **ReLife Sync 深度同步与 Web 兼容性层 (Vitalic Context & Dashboard Sync)**：
+    - **逻辑中台化**：重构了 `VitalicContext.tsx` 并更名为 `useApp`。移除了原生 Capacitor 与移动端推送依赖，使其完美兼容 Next.js Web 环境。
+    - **全量功能同步**：将 `er-sync` App 的核心业务逻辑（任务打卡、水分计算、库存联动、Reset 策划、阶梯定价）完整迁移至 Web 端，实现了「逻辑一处修改，双端实时同步」。
+    - **Dashboard 交互重构**：重写了 `/dashboard/health` 页面。引入了交互式动作弹窗（身体感官记录、饮食明细记录），并完美对齐了 App 的数据结构与计算逻辑。
+    - **性能与安全性**：优化了 Supabase 实时订阅机制，增强了 TypeScript 类型约束，修复了 Web 端的别名路径解析问题。
+    - **视觉升级**：应用了高级玻璃拟物化（Glassmorphism）与 Framer Motion 动效，打造 Premium 级别的个人健康管理体验。
+
+
+## [V1.0.41] - OF
+[2026-03-05 18:10 till 16:18]** (Gemini 3 Flash)
+
+- **ReLife Sync 深度融合：打造全方位 Web 健康管理后台 (ReLife Sync Integration)**：
+    - **架构进化**：重构了侧边栏导航，建立了独立的 ReLife Sync 功能组。
+    - **变更叙述**：全面补齐 ReLife Sync 健康管理功能。实现了交互式动作弹窗（身体日志、饮食日志）、深度趋势可视化（精力/水分/打卡环比）、Reset 计划策划向导及库存联动预警系统。优化了整体 UI 质感与侧边栏导航架构。
+
+## [V1.0.40] - OF
+2026-03-05 17:46 till 17:53 (Gemini 3 Flash)
+
+- **ReLife Sync 深度融合：打造全方位 Web 健康管理后台 (ReLife Sync Integration)**：
+    - **侧边栏分组架构 (Sidebar Rebranding)**：重构了 Dashboard 导航系统，将功能划分为 `RELIFE SYNC` (健康管理) 与 `MY ACCOUNT` (账户管理) 两大独立板块。
+    - **每日节律中心 (📍 Today Page)**：上线了 `/dashboard/health` 页面，集成动态时间轴打卡、饮水追踪器、身体感知入口，并支持实时进程统计。
+    - **趋势洞察可视化 (📈 Insights Page)**：上线了 `/dashboard/health/insights` 页面，采用 **ReCharts** 渲染饮水 7 天趋势、节律打卡完成率及月度同步热力图。
+    - **计划排程管理 (📅 Plans Page)**：上线了 `/dashboard/health/plans` 页面，支持查看正在进行的 Reset 周期、排程列表及核心节律配置。
+    - **概览页健康快照 (Dashboard Health Snapshot)**：在 `/dashboard` 首页集成实时健康统计卡片，打通商业订单与个人健康进度的视觉连接。
+    - **UI/UX 极致体验**：全量应用 **Framer Motion** 动效与节律渐变风格，针对大屏优化了双栏布局与数据展示深度。
+
+## [V1.0.39] - OF
+2026-03-05 15:30 till 16:15 (Gemini 3 Pro High)
+
+- **ReLife Sync 健康管理体系结构化升级 (rsl_ & rss_ Structured Schema)**：
+    - **数据库架构重构**：设计并实施了全新结构化健康存储体系。新增了 `rsl_` (ReLife Sync Logs) 打卡日志系列与 `rss_` (ReLife Sync Settings) 计划配置系列共 8 张表。
+    - **修复「计划时间缺失」缺陷**：在 `rsl_checkins` 表中新增了 `scheduled_at` 字段，解决了 `er-sync` 原有架构仅记录操作时间而无法分析守时率的痛点。
+    - **数据迁移自动化**：编写了 `migrate_user_data.ts` 专业脚本，支持将 `user_data` 表中的 JSON 堆栈一键搬迁至结构化 SQL 表。
+    - **统一 API 服务层**：建立了 `health-api.ts` 与 `health-types.ts` 通用层，为打卡、饮水、身体日志、Reset 计划及用户设置提供标准化 CRUD 接口。
+    - **Web 实时状态引擎**：上线了 `HealthContext.tsx` 全局状态容器，实现了 **Optimistic UI (乐观更新)** 以确保零延迟操作，并集成 **Supabase Real-time** 实现跨端秒级同步。
+    - **双端同步设置**：支持 `rss_settings`（如起床时间、节律配置）在 Web 端的实时编辑与移动端的自动对齐。
+
 
 ## [V1.0.38] - HM
 2026-03-05 13:58 till 14:02 (Gemini 3 Flash)

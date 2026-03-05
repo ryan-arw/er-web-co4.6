@@ -1,0 +1,21 @@
+{
+    "name": "ReLife Sync Dashboard",
+    "short_name": "ReLife Sync",
+    "description": "Premium Health Rhythm Management Dashboard",
+    "start_url": "/dashboard/health",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2ea180",
+    "icons": [
+        {
+            "src": "/photo/01 vitalic-d-main.jpg",
+            "sizes": "192x192",
+            "type": "image/jpeg"
+        },
+        {
+            "src": "/photo/01 vitalic-d-main.jpg",
+            "sizes": "512x512",
+            "type": "image/jpeg"
+        }
+    ]
+}

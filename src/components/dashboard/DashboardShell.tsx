@@ -8,26 +8,61 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, ShoppingBag, Repeat, Package, MapPin,
     Settings, HelpCircle, LogOut, Menu, X, ChevronDown,
-    User as UserIcon, Bell
+    User as UserIcon, Bell, Zap, BarChart3, CalendarRange,
+    Activity
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
-const sidebarLinks = [
+const healthLinks = [
+    { href: '/dashboard/health', icon: Activity, label: '每日节律' },
+    { href: '/dashboard/health/insights', icon: BarChart3, label: '趋势洞察' },
+    { href: '/dashboard/health/plans', icon: CalendarRange, label: '计划排程' },
+];
+
+const accountLinks = [
     { href: '/dashboard', icon: LayoutDashboard, label: '概览' },
     { href: '/dashboard/orders', icon: ShoppingBag, label: '我的订单' },
     { href: '/dashboard/subscriptions', icon: Repeat, label: '订阅管理' },
     { href: '/dashboard/stash', icon: Package, label: '我的库存' },
     { href: '/dashboard/addresses', icon: MapPin, label: '地址管理' },
+];
+
+const footerLinks = [
     { href: '/dashboard/settings', icon: Settings, label: '账户设置' },
     { href: '/dashboard/help', icon: HelpCircle, label: '帮助与支持' },
 ];
+
+interface NavLinkProps {
+    link: { href: string; icon: any; label: string };
+    pathname: string;
+    setSidebarOpen: (open: boolean) => void;
+}
+
+const NavLink = ({ link, pathname, setSidebarOpen }: NavLinkProps) => {
+    const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href));
+    return (
+        <Link
+            href={link.href}
+            onClick={() => setSidebarOpen(false)}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
+                ? 'bg-warm-orange/10 text-warm-orange'
+                : 'text-text-sub hover:bg-ivory hover:text-herbal-green'
+                }`}
+        >
+            <link.icon size={18} />
+            {link.label}
+        </Link>
+    );
+};
 
 interface DashboardShellProps {
     children: React.ReactNode;
     user: User;
     profile: { name?: string; avatar_url?: string } | null;
 }
+
+const allLinks = [...healthLinks, ...accountLinks, ...footerLinks];
 
 export default function DashboardShell({ children, user, profile }: DashboardShellProps) {
     const pathname = usePathname();
@@ -58,24 +93,35 @@ export default function DashboardShell({ children, user, profile }: DashboardShe
             </div>
 
             {/* Nav Links */}
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                {sidebarLinks.map((link) => {
-                    const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href));
-                    return (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                                ? 'bg-warm-orange/10 text-warm-orange'
-                                : 'text-text-sub hover:bg-ivory hover:text-herbal-green'
-                                }`}
-                        >
-                            <link.icon size={18} />
-                            {link.label}
-                        </Link>
-                    );
-                })}
+            <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
+                {/* ReLife Sync Group */}
+                <div>
+                    <h3 className="px-4 text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">ReLife Sync</h3>
+                    <div className="space-y-1">
+                        {healthLinks.map((link) => (
+                            <NavLink key={link.href} link={link} pathname={pathname} setSidebarOpen={setSidebarOpen} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* My Account Group */}
+                <div>
+                    <h3 className="px-4 text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">My Account</h3>
+                    <div className="space-y-1">
+                        {accountLinks.map((link) => (
+                            <NavLink key={link.href} link={link} pathname={pathname} setSidebarOpen={setSidebarOpen} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Footer Group */}
+                <div className="pt-4 border-t border-border-soft/50">
+                    <div className="space-y-1">
+                        {footerLinks.map((link) => (
+                            <NavLink key={link.href} link={link} pathname={pathname} setSidebarOpen={setSidebarOpen} />
+                        ))}
+                    </div>
+                </div>
             </nav>
 
             {/* User Card */}
@@ -140,7 +186,7 @@ export default function DashboardShell({ children, user, profile }: DashboardShe
                                 <Menu size={20} />
                             </button>
                             <h2 className="text-sm font-semibold text-herbal-green">
-                                {sidebarLinks.find(l => l.href === pathname || (l.href !== '/dashboard' && pathname.startsWith(l.href)))?.label || '概览'}
+                                {allLinks.find(l => l.href === pathname || (l.href !== '/dashboard' && pathname.startsWith(l.href)))?.label || '概览'}
                             </h2>
                         </div>
 

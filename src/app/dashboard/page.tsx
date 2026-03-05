@@ -2,8 +2,10 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import {
     ShoppingBag, Repeat, Package, Calendar,
-    ArrowRight, Activity, Sparkles, TrendingUp
+    ArrowRight, Activity, Sparkles, TrendingUp, Droplets, CheckCircle2
 } from 'lucide-react';
+
+import { getScheduleForPhase } from '@/lib/health-constants';
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -12,15 +14,26 @@ export default async function DashboardPage() {
     const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '用户';
 
     // Fetch stats from Supabase
-    const [ordersRes, subRes, stashRes] = await Promise.all([
+    const [ordersRes, subRes, stashRes, summaryRes] = await Promise.all([
         supabase.from('orders').select('*', { count: 'exact', head: true }).eq('user_id', user?.id),
         supabase.from('subscriptions').select('*', { count: 'exact', head: true }).eq('user_id', user?.id).eq('status', 'active'),
-        supabase.from('inventory_logs').select('balance_after').eq('user_id', user?.id).order('created_at', { ascending: false }).limit(1)
+        supabase.from('inventory_logs').select('balance_after').eq('user_id', user?.id).order('created_at', { ascending: false }).limit(1),
+        supabase.from('rsl_summaries').select('water_intake, completed_task_ids, phase, cycle_day').eq('user_id', user?.id).eq('date', new Date().toISOString().split('T')[0]).single()
     ]);
 
     const orderCount = ordersRes.count || 0;
     const subCount = subRes.count || 0;
     const stashBalance = stashRes.data?.[0]?.balance_after || 0;
+    const healthSummary = summaryRes.data;
+
+    // Calculate progress counts
+    let completedCount = 0;
+    let totalCount = 0;
+    if (healthSummary) {
+        completedCount = healthSummary.completed_task_ids?.length || 0;
+        const schedule = getScheduleForPhase(healthSummary.phase as any, healthSummary.cycle_day);
+        totalCount = schedule.length;
+    }
 
     // Quick stat cards data
     const stats = [
@@ -41,20 +54,20 @@ export default async function DashboardPage() {
             bg: 'bg-morning-green/10',
         },
         {
-            icon: Package,
-            label: '库存',
-            value: `${stashBalance} 盒`,
-            sub: stashBalance > 0 ? '充足可用' : '建议补货',
-            color: 'text-herbal-green',
-            bg: 'bg-herbal-green/10',
-        },
-        {
-            icon: Calendar,
-            label: '下次 ReSet',
-            value: '待规划',
-            sub: '推荐每季度一次',
+            icon: Droplets,
+            label: '今日饮水',
+            value: healthSummary ? `${(healthSummary.water_intake / 1000).toFixed(1)} L` : '0 L',
+            sub: '目标: 2.5 L',
             color: 'text-blue-600',
             bg: 'bg-blue-50',
+        },
+        {
+            icon: CheckCircle2,
+            label: '节律打卡',
+            value: healthSummary ? `${completedCount}/${totalCount}` : '0/0',
+            sub: '今日完成度',
+            color: 'text-herbal-green',
+            bg: 'bg-herbal-green/10',
         },
     ];
 
@@ -104,20 +117,20 @@ export default async function DashboardPage() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[
                         {
+                            icon: Activity,
+                            title: '每日节律打卡',
+                            desc: '同步您的生物钟',
+                            href: '/dashboard/health',
+                            color: 'text-morning-green-dark',
+                            bg: 'bg-morning-green/5',
+                        },
+                        {
                             icon: ShoppingBag,
                             title: '浏览产品',
                             desc: '发现 Vitalic D 系列',
                             href: '/products',
                             color: 'text-warm-orange',
                             bg: 'bg-warm-orange/5',
-                        },
-                        {
-                            icon: Activity,
-                            title: '了解 3R 流程',
-                            desc: '查看详细指南',
-                            href: '/how-it-works',
-                            color: 'text-morning-green-dark',
-                            bg: 'bg-morning-green/5',
                         },
                         {
                             icon: TrendingUp,

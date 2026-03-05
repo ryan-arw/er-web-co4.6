@@ -1,7 +1,7 @@
 # EzyRelife 数据库全量技术规约 (Hardcore Schema Spec)
 
-> **版本**: V1.3 (2026-03-04 23:15)
-> **状态**: 1:1 还原云端 DDL 逻辑。新增 Email Dual Gateway 模块。
+> **版本**: V1.4 (2026-03-05 15:45)
+> **状态**: 1:1 还原云端 DDL 逻辑。新增 ReLife Sync 结构化健康管理体系 (rsl_ & rss_)。
 
 ---
 
@@ -193,6 +193,110 @@
 | `error_message` | text | - | 错误详情 |
 | `metadata` | jsonb | `'{}'::jsonb` | 业务关联 ID (如 order_id) |
 | `created_at` | timestamptz | `now()` | - |
+
+### 17. `rsl_checkins` (健康打卡记录)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `id` | uuid | **PK**, `gen_random_uuid()` | - |
+| `user_id` | uuid | **NOT NULL** | `auth.users(id)` |
+| `date` | date | **NOT NULL** | 业务日期 |
+| `action_type` | text | **NOT NULL** | water, habit, nutrient, somatic, mood, reflection |
+| `task_id` | text | - | 关联任务 ID (如 m1, reset_1) |
+| `value` | jsonb | - | 具体数值 (ml, mood tag 等) |
+| `scheduled_at` | timestamptz | - | 计划执行时间 |
+| `checked_in_at`| timestamptz | `now()` | 真实执行时间 |
+| `device_type` | text | - | ios, android, web |
+| `source` | text | `'app'::text` | app, widget, notification, web |
+| `created_at` | timestamptz | `now()` | - |
+
+### 18. `rsl_summaries` (每日聚合摘要)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `id` | uuid | **PK** | - |
+| `user_id` | uuid | **NOT NULL** | `auth.users(id)` |
+| `date` | date | **NOT NULL** | **UNIQUE** (with user_id) |
+| `water_intake` | integer | `0` | 当日饮水总量 |
+| `completed_task_ids`| text[] | `'{}'::text[]` | 已完成任务数组 |
+| `skipped_task_ids` | text[]| `'{}'::text[]` | 已跳过任务数组 |
+| `phase` | text | `'MAINTENANCE'`| 所属阶段 |
+| `cycle_day` | integer | `0` | 阶段进程序号 |
+| `updated_at` | timestamptz | `now()` | - |
+
+### 19. `rsl_somatic_logs` (身体感知日志)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `id` | uuid | **PK** | - |
+| `user_id` | uuid | **NOT NULL** | `auth.users(id)` |
+| `date` | date | **NOT NULL** | **UNIQUE** (with user_id) |
+| `energy` | integer | - | 1-5 |
+| `digestion` | integer | - | 1-5 |
+| `sleep_quality`| integer | - | 1-5 |
+| `lightness` | integer | - | 1-5 |
+| `mood` | text[] | `'{}'::text[]` | 心情标签数组 |
+| `notes` | text | - | 自由随笔 |
+| `updated_at` | timestamptz | `now()` | - |
+
+### 20. `rsl_meal_logs` (饮食记录)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `id` | uuid | **PK** | - |
+| `user_id` | uuid | **NOT NULL** | `auth.users(id)` |
+| `date` | date | **NOT NULL** | **UNIQUE** (with user_id, meal_type) |
+| `meal_type` | text | **NOT NULL** | breakfast, lunch, dinner |
+| `phase_type` | text | **NOT NULL** | realign, restore |
+| `data` | jsonb | `'{}'::jsonb` | 差异化饮食数据 |
+| `updated_at` | timestamptz | `now()` | - |
+
+### 21. `rss_plans` (Reset 排程)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `id` | uuid | **PK** | - |
+| `user_id` | uuid | **NOT NULL** | `auth.users(id)` |
+| `start_date` | date | **NOT NULL** | - |
+| `end_date` | date | **NOT NULL** | - |
+| `intention` | text | - | GLOW, GROW, FLOW |
+| `type` | text | `'manual'` | manual, recurring |
+| `realign_duration`| integer | `2` | - |
+| `restore_duration`| integer | `2` | - |
+| `is_stock_deducted`| boolean | `false` | 是否已预扣库存 |
+| `is_skipped` | boolean | `false` | 是否已跳过 |
+| `updated_at` | timestamptz | `now()` | - |
+
+### 22. `rss_user_configs` (用户节律配置)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `user_id` | uuid | **PK** | `auth.users(id)` |
+| `current_phase` | text | `'MAINTENANCE'` | - |
+| `next_reset_date`| date | - | - |
+| `interval_months`| integer | `3` | - |
+| `occurrences` | integer | `4` | - |
+| `is_configured` | boolean | `false` | - |
+| `is_recurring` | boolean | `false` | - |
+| `updated_at` | timestamptz | `now()` | - |
+
+### 23. `rss_nutrients` (营养补充计划)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `id` | uuid | **PK** | - |
+| `user_id` | uuid | **NOT NULL** | `auth.users(id)` |
+| `group_id` | text | - | 关联组 ID |
+| `brand` | text | - | 品牌名 |
+| `name` | text | **NOT NULL** | 产品名 |
+| `time` | text | **NOT NULL** | HH:mm |
+| `type` | text | `'supplement'` | - |
+| `updated_at` | timestamptz | `now()` | - |
+
+### 24. `rss_settings` (个性化设置)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `user_id` | uuid | **PK** | `auth.users(id)` |
+| `wake_up_time` | text | `'07:00'` | - |
+| `habit_settings` | jsonb | `'{}'::jsonb` | - |
+| `rhythm_settings` | jsonb | `'{}'::jsonb` | - |
+| `somatic_settings` | jsonb | `'{}'::jsonb` | - |
+| `section_settings`| jsonb | `'{}'::jsonb` | - |
+| `notification_settings`| jsonb | `'{}'::jsonb` | 仅移动端持久化参考 |
+| `updated_at` | timestamptz | `now()` | - |
 
 ---
 

@@ -1,12 +1,13 @@
 {
   "name": "er-web-co4.6",
-  "version": "1.0.38",
+  "version": "1.0.42",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "tsx scripts/migrate_user_data.ts"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^9.0.1",
@@ -23,6 +24,7 @@
     "nodemailer": "^8.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "recharts": "^3.7.0",
     "resend": "^6.9.3",
     "stripe": "^20.4.0"
   },
@@ -32,10 +34,12 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^16.4.5",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "supabase": "^2.76.16",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
