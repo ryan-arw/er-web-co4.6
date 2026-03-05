@@ -1,7 +1,7 @@
 # EzyRelife 数据库全量技术规约 (Hardcore Schema Spec)
 
-> **版本**: V1.2 (2026-03-04 11:30)
-> **状态**: 1:1 还原云端 DDL 逻辑。新增 Feedback Submissions 模块。
+> **版本**: V1.3 (2026-03-04 23:15)
+> **状态**: 1:1 还原云端 DDL 逻辑。新增 Email Dual Gateway 模块。
 
 ---
 
@@ -131,9 +131,12 @@
 | 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
 | :--- | :--- | :--- | :--- |
 | `id` | uuid | **PK**, **FK** | `auth.users(id)` |
-| `name` | text | `''::text` | - |
+| `name` | text | `''::text` | 用户姓名 / 昵称 (来自 metadata 或手动输入) |
+| `phone` | text | `''::text` | 账户主手机号 (来自 metadata 或手动输入) |
 | `rhythm_id` | text | `''::text` | - |
 | `avatar_url` | text | `''::text` | - |
+| `updated_at` | timestamptz | `now()` | - |
+
 
 ### 12. `subscriptions` (订阅计划)
 | 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
@@ -165,6 +168,30 @@
 | `reference_number` | text | **UNIQUE** | - |
 | `status` | text | `'received'::text` | - |
 | `metadata` | jsonb | `'{}'::jsonb` | - |
+| `created_at` | timestamptz | `now()` | - |
+
+### 15. `email_provider_settings` (邮件发送配置)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `id` | uuid | **PK**, `gen_random_uuid()` | - |
+| `email_type` | text | **UNIQUE**, **NOT NULL** | 唯一标识 (如 order_confirmation) |
+| `provider` | text | **NOT NULL** | `resend`, `hostgator_smtp`, `off` |
+| `display_name` | text | **NOT NULL** | 后台显示名 |
+| `is_enabled` | boolean | `true` | 是否全局开启 |
+| `updated_at` | timestamptz | `now()` | - |
+| `updated_by` | uuid | - | `auth.users(id)` |
+
+### 16. `email_logs` (邮件审计日志)
+| 字段名 | 类型 | 约束 / 默认值 | 关系 (References) |
+| :--- | :--- | :--- | :--- |
+| `id` | uuid | **PK**, `gen_random_uuid()` | - |
+| `email_type` | text | **NOT NULL** | 对应邮件类型 |
+| `provider` | text | **NOT NULL** | 实际发送通道 |
+| `to_email` | text | **NOT NULL** | 收件地址 |
+| `subject` | text | - | 邮件标题 |
+| `status` | text | **NOT NULL** | `sent`, `failed` |
+| `error_message` | text | - | 错误详情 |
+| `metadata` | jsonb | `'{}'::jsonb` | 业务关联 ID (如 order_id) |
 | `created_at` | timestamptz | `now()` | - |
 
 ---

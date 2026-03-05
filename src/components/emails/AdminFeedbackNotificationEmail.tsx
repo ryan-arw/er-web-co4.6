@@ -5,36 +5,40 @@ import {
     Heading,
     Hr,
     Html,
+    Img,
+    Link,
     Preview,
     Section,
     Text,
 } from '@react-email/components';
 import * as React from 'react';
 
-interface ContactNotificationEmailProps {
-    name: string;
-    email: string;
-    subject: string;
-    message: string;
+interface AdminFeedbackNotificationEmailProps {
     referenceNumber: string;
-    orderNumber?: string | null;
+    customerEmail: string;
+    type: string;
+    description: string;
+    imageUrl?: string | null;
 }
 
-export const ContactNotificationEmail = ({
-    name,
-    email,
-    subject,
-    message,
+export const AdminFeedbackNotificationEmail = ({
     referenceNumber,
-    orderNumber,
-}: ContactNotificationEmailProps) => (
+    customerEmail,
+    type,
+    description,
+    imageUrl,
+}: AdminFeedbackNotificationEmailProps) => (
     <Html>
         <Head />
-        <Preview>New Contact Message: {subject}</Preview>
+        <Preview>New User Feedback: {referenceNumber}</Preview>
         <Body style={main}>
             <Container style={container}>
                 <Section style={contentWrapper}>
-                    <Heading style={h1}>New Contact Inquiry</Heading>
+                    <Heading style={h1}>📝 New User Feedback</Heading>
+                    <Text style={text}>
+                        A user has submitted feedback via the Feedback Center.
+                    </Text>
+
                     <Hr style={hr} />
 
                     <Section style={infoRow}>
@@ -43,30 +47,37 @@ export const ContactNotificationEmail = ({
                     </Section>
 
                     <Section style={infoRow}>
-                        <Text style={label}>From:</Text>
-                        <Text style={value}>{name} ({email})</Text>
+                        <Text style={label}>From User:</Text>
+                        <Text style={value}>{customerEmail}</Text>
                     </Section>
 
-                    {orderNumber && (
-                        <Section style={infoRow}>
-                            <Text style={label}>Related Order:</Text>
-                            <Text style={value}>#{orderNumber}</Text>
-                        </Section>
-                    )}
-
                     <Section style={infoRow}>
-                        <Text style={label}>Subject:</Text>
-                        <Text style={value}>{subject}</Text>
+                        <Text style={label}>Feedback Type:</Text>
+                        <Text style={value}>{type}</Text>
                     </Section>
 
                     <Hr style={hr} />
 
-                    <Text style={sectionTitle}>Message:</Text>
-                    <Text style={messageBox}>{message}</Text>
+                    <Text style={sectionTitle}>Description:</Text>
+                    <Text style={messageBox}>{description}</Text>
+
+                    {imageUrl && (
+                        <>
+                            <Hr style={hr} />
+                            <Text style={sectionTitle}>Attached Screenshot:</Text>
+                            <Link href={imageUrl} target="_blank">
+                                <Img
+                                    src={imageUrl}
+                                    alt="User Feedback Screenshot"
+                                    style={feedbackImage}
+                                />
+                            </Link>
+                        </>
+                    )}
 
                     <Hr style={hr} />
                     <Text style={footer}>
-                        Reply directly to this email to respond to <strong>{name}</strong>.
+                        Check the admin portal for more details and management.
                     </Text>
                 </Section>
             </Container>
@@ -74,12 +85,11 @@ export const ContactNotificationEmail = ({
     </Html>
 );
 
-export default ContactNotificationEmail;
+export default AdminFeedbackNotificationEmail;
 
 const main = {
     backgroundColor: '#f6f9fc',
-    fontFamily:
-        '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+    fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
 
 const container = {
@@ -100,6 +110,13 @@ const h1 = {
     fontSize: '24px',
     fontWeight: 'bold',
     margin: '0 0 16px',
+};
+
+const text = {
+    color: '#444',
+    fontSize: '16px',
+    lineHeight: '24px',
+    margin: '0',
 };
 
 const sectionTitle = {
@@ -137,6 +154,13 @@ const messageBox = {
     border: '1px solid #eee',
     lineHeight: '1.6',
     margin: '8px 0',
+};
+
+const feedbackImage = {
+    borderRadius: '8px',
+    marginTop: '12px',
+    maxWidth: '100%',
+    border: '1px solid #eee',
 };
 
 const hr = {

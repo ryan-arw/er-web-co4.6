@@ -80,6 +80,29 @@ export async function POST(req: Request) {
             );
         }
 
+        // 3. Send Admin Notification Email
+        try {
+            const { dispatchEmail } = await import('@/lib/mail');
+            const AdminFeedbackNotificationEmail = (await import('@/components/emails/AdminFeedbackNotificationEmail')).default;
+
+            await dispatchEmail({
+                emailType: 'feedback_notification' as any,
+                to: 'support@ezyrelife.com',
+                subject: `[New Feedback] ${type} (${refId})`,
+                reactTemplate: AdminFeedbackNotificationEmail({
+                    referenceNumber: refId,
+                    customerEmail: user.email || 'authenticated-user',
+                    type,
+                    description,
+                    imageUrl: (screenshotUrls && screenshotUrls.length > 0) ? screenshotUrls[0] : null,
+                }),
+                metadata: { reference_number: refId },
+                fromName: 'EzyRelife Feedback',
+            });
+        } catch (mailError) {
+            console.error('Error sending admin feedback notification:', mailError);
+        }
+
         return NextResponse.json({
             success: true,
             referenceNumber: refId,

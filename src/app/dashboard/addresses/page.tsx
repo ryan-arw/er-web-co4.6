@@ -8,6 +8,7 @@ import {
 
 import { createClient } from '@/lib/supabase/client';
 import { useEffect } from 'react';
+import { COUNTRIES } from '@/lib/constants/countries';
 
 interface Address {
     id: string;
@@ -345,13 +346,17 @@ export default function AddressesPage() {
                                     </div>
                                     <div>
                                         <label className="text-xs font-medium text-herbal-green mb-1 block uppercase tracking-wider">国家/地区</label>
-                                        <input
-                                            type="text"
+                                        <select
                                             value={formCountry}
                                             onChange={(e) => setFormCountry(e.target.value)}
-                                            className="w-full px-3 py-2.5 rounded-xl bg-ivory border border-border-soft text-sm focus:outline-none focus:border-warm-orange transition-all"
+                                            className="w-full px-3 py-2.5 rounded-xl bg-ivory border border-border-soft text-sm focus:outline-none focus:border-warm-orange transition-all cursor-pointer"
                                             required
-                                        />
+                                        >
+                                            <option value="" disabled>选择国家</option>
+                                            {COUNTRIES.map(country => (
+                                                <option key={country} value={country}>{country}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                                 <button type="submit" className="w-full btn-primary text-sm py-3 mt-2 font-bold tracking-widest">保存地址</button>

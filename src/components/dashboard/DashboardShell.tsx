@@ -26,7 +26,7 @@ const sidebarLinks = [
 interface DashboardShellProps {
     children: React.ReactNode;
     user: User;
-    profile: { full_name?: string; avatar_url?: string } | null;
+    profile: { name?: string; avatar_url?: string } | null;
 }
 
 export default function DashboardShell({ children, user, profile }: DashboardShellProps) {
@@ -35,7 +35,8 @@ export default function DashboardShell({ children, user, profile }: DashboardShe
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-    const displayName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || '用户';
+    const displayName = profile?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || '用户';
+
 
     const handleLogout = async () => {
         const supabase = createClient();
@@ -66,8 +67,8 @@ export default function DashboardShell({ children, user, profile }: DashboardShe
                             href={link.href}
                             onClick={() => setSidebarOpen(false)}
                             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                                    ? 'bg-warm-orange/10 text-warm-orange'
-                                    : 'text-text-sub hover:bg-ivory hover:text-herbal-green'
+                                ? 'bg-warm-orange/10 text-warm-orange'
+                                : 'text-text-sub hover:bg-ivory hover:text-herbal-green'
                                 }`}
                         >
                             <link.icon size={18} />

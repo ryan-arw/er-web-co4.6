@@ -84,33 +84,29 @@ export async function POST(req: Request) {
             );
         }
 
-        // 4. Send Email Notification via Resend
+        // 4. Send Email Notification via Unified Gateway
         try {
-            console.log('--- Attempting to send email via Resend ---');
-            console.log('To:', 'support@ezyrelife.com');
-            console.log('Ref ID:', refId);
+            const { dispatchEmail } = await import('@/lib/mail');
+            const ContactNotificationEmail = (await import('@/components/emails/ContactNotificationEmail')).default;
 
-            const { data: emailData, error: emailError } = await resend.emails.send({
-                from: 'EzyRelife <noreply@send.ezyrelife.com>',
-                to: ['support@ezyrelife.com'],
-                replyTo: email,
+            await dispatchEmail({
+                emailType: 'contact_notification',
+                to: 'support@ezyrelife.com',
                 subject: `[New Inquiry] ${subject} (${refId})`,
-                react: ContactNotificationEmail({
+                reactTemplate: ContactNotificationEmail({
                     name,
                     email,
                     subject,
                     message,
                     referenceNumber: refId,
+                    orderNumber: orderNumber || null,
                 }),
+                replyTo: email,
+                metadata: { reference_number: refId },
+                fromName: 'EzyRelife Support',
             });
-
-            if (emailError) {
-                console.error('Resend API returned an error:', emailError);
-            } else {
-                console.log('Resend success! ID:', emailData?.id);
-            }
         } catch (emailCatchError) {
-            console.error('Critical failure in email sending loop:', emailCatchError);
+            console.error('Critical failure in email sending dispatcher:', emailCatchError);
         }
 
         return NextResponse.json({

@@ -39,9 +39,8 @@ export default function SettingsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setEmail(user.email || '');
-                setFullName(user.user_metadata?.full_name || '');
-                setPhone(user.user_metadata?.phone || '');
 
+                // 优先从 profiles 表读取，那里是最终真相
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('*')
@@ -49,7 +48,12 @@ export default function SettingsPage() {
                     .maybeSingle();
 
                 if (profile) {
-                    if (profile.name) setFullName(profile.name);
+                    setFullName(profile.name || '');
+                    setPhone(profile.phone || '');
+                } else {
+                    // 如果 profile 还没创建（可能是老用户），则从 metadata 兜底
+                    setFullName(user.user_metadata?.full_name || '');
+                    setPhone(user.user_metadata?.phone || '');
                 }
             }
             setLoading(false);
@@ -64,20 +68,27 @@ export default function SettingsPage() {
         const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
-            await supabase.auth.updateUser({
-                data: { full_name: fullName, phone }
-            });
-
-            await supabase
-                .from('profiles')
-                .update({ name: fullName, updated_at: new Date().toISOString() })
-                .eq('id', user.id);
+            // 同时更新 Auth Metadata 和 Profiles 全量表
+            await Promise.all([
+                supabase.auth.updateUser({
+                    data: { full_name: fullName, phone }
+                }),
+                supabase
+                    .from('profiles')
+                    .upsert({
+                        id: user.id,
+                        name: fullName,
+                        phone: phone,
+                        updated_at: new Date().toISOString()
+                    })
+            ]);
         }
 
         setSavingProfile(false);
         setProfileSaved(true);
         setTimeout(() => setProfileSaved(false), 3000);
     };
+
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();

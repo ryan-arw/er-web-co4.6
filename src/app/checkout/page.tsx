@@ -15,6 +15,7 @@ import Navbar from '@/components/marketing/Navbar';
 import { createClient } from '@/lib/supabase/client';
 import { loadStripe } from '@stripe/stripe-js';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { COUNTRIES } from '@/lib/constants/countries';
 
 interface Address {
     id: string;
@@ -412,10 +413,10 @@ export default function CheckoutPage() {
                                                 onChange={(e) => setShippingInfo({ ...shippingInfo, country: e.target.value })}
                                                 className="input-base cursor-pointer"
                                             >
-                                                <option value="United States">United States</option>
-                                                <option value="United Kingdom">United Kingdom</option>
-                                                <option value="Australia">Australia</option>
-                                                <option value="Singapore">Singapore</option>
+                                                <option value="" disabled>Select a country</option>
+                                                {COUNTRIES.map(country => (
+                                                    <option key={country} value={country}>{country}</option>
+                                                ))}
                                             </select>
                                         </div>
 
@@ -573,8 +574,8 @@ export default function CheckoutPage() {
                                 <div className="p-4 rounded-2xl bg-ivory/50 flex items-start gap-3 mt-4">
                                     <Truck size={18} className="text-morning-green-dark flex-shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-xs font-bold text-herbal-green">3-5 Business Days Delivery</p>
-                                        <p className="text-[10px] text-text-muted mt-0.5">Reliable international shipping to US, UK, AU & SG.</p>
+                                        <p className="text-xs font-bold text-herbal-green">Global International Shipping</p>
+                                        <p className="text-[10px] text-text-muted mt-0.5">Reliable international delivery to over 100+ countries.</p>
                                     </div>
                                 </div>
                             </div>
